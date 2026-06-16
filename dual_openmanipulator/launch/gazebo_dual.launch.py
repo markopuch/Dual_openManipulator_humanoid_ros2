@@ -1,0 +1,162 @@
+#!/usr/bin/env python3
+
+import os
+
+from ament_index_python.packages import get_package_share_directory
+from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument
+from launch.actions import IncludeLaunchDescription
+from launch.actions import RegisterEventHandler
+from launch.actions import SetEnvironmentVariable
+from launch.conditions import IfCondition
+from launch.event_handlers import OnProcessExit
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import Command
+from launch.substitutions import FindExecutable
+from launch.substitutions import LaunchConfiguration
+from launch.substitutions import PathJoinSubstitution
+from launch_ros.actions import Node
+from launch_ros.parameter_descriptions import ParameterValue
+from launch_ros.substitutions import FindPackageShare
+
+
+def generate_launch_description():
+    pkg_share = get_package_share_directory('dual_openmanipulator')
+    gazebo_ros_share = get_package_share_directory('gazebo_ros')
+    description_share = get_package_share_directory('open_manipulator_x_description')
+
+    use_sim_time = LaunchConfiguration('use_sim_time')
+    gui = LaunchConfiguration('gui')
+    world = LaunchConfiguration('world')
+
+    robot_description = ParameterValue(
+        Command([
+            PathJoinSubstitution([FindExecutable(name='xacro')]),
+            ' ',
+            PathJoinSubstitution([
+                FindPackageShare('dual_openmanipulator'),
+                'urdf',
+                'dual_open_manipulator.urdf.xacro',
+            ]),
+            ' ',
+            'use_sim:=true',
+        ]),
+        value_type=str,
+    )
+
+    robot_state_publisher = Node(
+        package='robot_state_publisher',
+        executable='robot_state_publisher',
+        output='screen',
+        parameters=[
+            {'robot_description': robot_description},
+            {'use_sim_time': use_sim_time},
+        ],
+    )
+
+    gzserver = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(gazebo_ros_share, 'launch', 'gzserver.launch.py')
+        ),
+        launch_arguments={
+            'world': world,
+            'verbose': 'false',
+        }.items(),
+    )
+
+    gzclient = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(gazebo_ros_share, 'launch', 'gzclient.launch.py')
+        ),
+        condition=IfCondition(gui),
+    )
+
+    spawn_robot = Node(
+        package='gazebo_ros',
+        executable='spawn_entity.py',
+        output='screen',
+        arguments=[
+            '-topic', 'robot_description',
+            '-entity', 'dual_open_manipulator',
+            '-x', '0.0',
+            '-y', '0.0',
+            '-z', '0.01',
+        ],
+    )
+
+    joint_state_broadcaster_spawner = Node(
+        package='controller_manager',
+        executable='spawner',
+        arguments=['joint_state_broadcaster', '--controller-manager', '/controller_manager'],
+        output='screen',
+    )
+
+    dual_arm_controller_spawner = Node(
+        package='controller_manager',
+        executable='spawner',
+        arguments=['dual_arm_controller', '--controller-manager', '/controller_manager'],
+        output='screen',
+    )
+
+    left_gripper_controller_spawner = Node(
+        package='controller_manager',
+        executable='spawner',
+        arguments=['left_gripper_controller', '--controller-manager', '/controller_manager'],
+        output='screen',
+    )
+
+    right_gripper_controller_spawner = Node(
+        package='controller_manager',
+        executable='spawner',
+        arguments=['right_gripper_controller', '--controller-manager', '/controller_manager'],
+        output='screen',
+    )
+
+    start_joint_state_broadcaster = RegisterEventHandler(
+        OnProcessExit(
+            target_action=spawn_robot,
+            on_exit=[joint_state_broadcaster_spawner],
+        )
+    )
+
+    start_motion_controllers = RegisterEventHandler(
+        OnProcessExit(
+            target_action=joint_state_broadcaster_spawner,
+            on_exit=[
+                dual_arm_controller_spawner,
+                left_gripper_controller_spawner,
+                right_gripper_controller_spawner,
+            ],
+        )
+    )
+
+    model_paths = os.pathsep.join([
+        os.path.join(description_share, '..'),
+        os.path.join(pkg_share, '..'),
+    ])
+
+    return LaunchDescription([
+        DeclareLaunchArgument(
+            'use_sim_time',
+            default_value='true',
+            description='Use Gazebo simulation clock.',
+        ),
+        DeclareLaunchArgument(
+            'gui',
+            default_value='true',
+            description='Start the Gazebo graphical client.',
+        ),
+        DeclareLaunchArgument(
+            'world',
+            default_value=os.path.join(pkg_share, 'worlds', 'dual_empty.world'),
+            description='Gazebo world file.',
+        ),
+        SetEnvironmentVariable('GAZEBO_MODEL_DATABASE_URI', ''),
+        SetEnvironmentVariable('GAZEBO_MODEL_PATH', model_paths),
+        gzserver,
+        gzclient,
+        robot_state_publisher,
+        spawn_robot,
+        start_joint_state_broadcaster,
+        start_motion_controllers,
+    ])

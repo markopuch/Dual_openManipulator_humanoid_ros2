@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<robot name="dual_open_manipulator" xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:arg name="use_sim" default="true"/>
+  <xacro:arg name="left_y" default="0.25"/>
+  <xacro:arg name="right_y" default="-0.25"/>
+
+  <xacro:include filename="$(find open_manipulator_x_description)/urdf/materials.xacro"/>
+  <xacro:include filename="$(find open_manipulator_x_description)/gazebo/open_manipulator_x.gazebo.xacro"/>
+  <xacro:include filename="$(find dual_openmanipulator)/urdf/open_manipulator_x_prefixed.urdf.xacro"/>
+  <xacro:include filename="$(find dual_openmanipulator)/urdf/dual_open_manipulator.ros2_control.xacro"/>
+
+  <link name="world"/>
+
+  <xacro:open_manipulator_x_prefixed prefix="left_"/>
+  <xacro:open_manipulator_x_gazebo prefix="left_"/>
+
+  <xacro:open_manipulator_x_prefixed prefix="right_"/>
+  <xacro:open_manipulator_x_gazebo prefix="right_"/>
+
+  <xacro:dual_open_manipulator_ros2_control name="DualOpenManipulatorSystem"/>
+
+  <joint name="left_world_fixed" type="fixed">
+    <origin xyz="0 $(arg left_y) 0" rpy="0 0 0"/>
+    <parent link="world"/>
+    <child link="left_link1"/>
+  </joint>
+
+  <joint name="right_world_fixed" type="fixed">
+    <origin xyz="0 $(arg right_y) 0" rpy="0 0 0"/>
+    <parent link="world"/>
+    <child link="right_link1"/>
+  </joint>
+
+  <gazebo>
+    <plugin name="gazebo_ros2_control" filename="libgazebo_ros2_control.so">
+      <parameters>$(find dual_openmanipulator)/config/gazebo_controller_manager.yaml</parameters>
+    </plugin>
+  </gazebo>
+</robot>
