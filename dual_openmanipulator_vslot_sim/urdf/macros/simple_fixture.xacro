@@ -1,0 +1,73 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:macro name="fixed_box_link" params="name parent size xyz rpy mass color">
+    <xacro:property name="sx" value="${float(size.split()[0])}"/>
+    <xacro:property name="sy" value="${float(size.split()[1])}"/>
+    <xacro:property name="sz" value="${float(size.split()[2])}"/>
+    <joint name="${name}_joint" type="fixed">
+      <parent link="${parent}"/>
+      <child link="${name}_link"/>
+      <origin xyz="${xyz}" rpy="${rpy}"/>
+    </joint>
+    <link name="${name}_link">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="${size}"/>
+        </geometry>
+        <material name="${color}"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="${size}"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="${mass}"/>
+        <inertia
+          ixx="${mass / 12.0 * (sy * sy + sz * sz)}"
+          ixy="0"
+          ixz="0"
+          iyy="${mass / 12.0 * (sx * sx + sz * sz)}"
+          iyz="0"
+          izz="${mass / 12.0 * (sx * sx + sy * sy)}"/>
+      </inertial>
+    </link>
+  </xacro:macro>
+
+  <xacro:macro name="fixed_cylinder_link" params="name parent radius length xyz rpy mass color">
+    <joint name="${name}_joint" type="fixed">
+      <parent link="${parent}"/>
+      <child link="${name}_link"/>
+      <origin xyz="${xyz}" rpy="${rpy}"/>
+    </joint>
+    <link name="${name}_link">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="${radius}" length="${length}"/>
+        </geometry>
+        <material name="${color}"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="${radius}" length="${length}"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="${mass}"/>
+        <inertia
+          ixx="${mass / 12.0 * (3.0 * radius * radius + length * length)}"
+          ixy="0"
+          ixz="0"
+          iyy="${mass / 12.0 * (3.0 * radius * radius + length * length)}"
+          iyz="0"
+          izz="${mass / 2.0 * radius * radius}"/>
+      </inertial>
+    </link>
+  </xacro:macro>
+</robot>

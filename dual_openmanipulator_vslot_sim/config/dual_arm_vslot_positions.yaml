@@ -1,0 +1,11 @@
+vslot:
+  base_x: 0.80
+  base_y: 0.55
+  base_z: 0.015
+  column_height: 0.70
+  beam_length: 1.00
+  left_mount_x: -0.38
+  right_mount_x: 0.38
+  arm_base_z_offset: -0.22
+  left_arm_yaw: 0.0
+  right_arm_yaw: 3.141592653589793
