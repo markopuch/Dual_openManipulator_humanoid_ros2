@@ -1,15 +1,16 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
   <xacro:macro
-    name="vslot_60x60_bar"
-    params="name parent length axis xyz rpy mass_per_meter:=2.58 area:=9.521e-4 i_area_y:=3.70420e-7 i_area_z:=3.70420e-7 color:=vslot_aluminum">
+    name="linear_profile_bar"
+    params="name parent length axis profile_x profile_y profile_z xyz rpy mass_per_meter color:=vslot_aluminum">
 
-    <xacro:property name="profile_size" value="0.06"/>
+    <xacro:property name="lx" value="${length if axis == 'x' else profile_x}"/>
+    <xacro:property name="ly" value="${length if axis == 'y' else profile_y}"/>
+    <xacro:property name="lz" value="${length if axis == 'z' else profile_z}"/>
     <xacro:property name="mass" value="${mass_per_meter * length}"/>
-    <xacro:property name="rho_eff" value="${mass_per_meter / area}"/>
-    <xacro:property name="i_long" value="${rho_eff * length * (i_area_y + i_area_z)}"/>
-    <xacro:property name="i_trans_y" value="${mass * length * length / 12.0 + rho_eff * length * i_area_z}"/>
-    <xacro:property name="i_trans_z" value="${mass * length * length / 12.0 + rho_eff * length * i_area_y}"/>
+    <xacro:property name="ixx" value="${mass / 12.0 * (ly * ly + lz * lz)}"/>
+    <xacro:property name="iyy" value="${mass / 12.0 * (lx * lx + lz * lz)}"/>
+    <xacro:property name="izz" value="${mass / 12.0 * (lx * lx + ly * ly)}"/>
 
     <joint name="${name}_joint" type="fixed">
       <parent link="${parent}"/>
@@ -21,45 +22,55 @@
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry>
-          <xacro:if value="${axis == 'x'}">
-            <box size="${length} ${profile_size} ${profile_size}"/>
-          </xacro:if>
-          <xacro:if value="${axis == 'y'}">
-            <box size="${profile_size} ${length} ${profile_size}"/>
-          </xacro:if>
-          <xacro:if value="${axis == 'z'}">
-            <box size="${profile_size} ${profile_size} ${length}"/>
-          </xacro:if>
+          <box size="${lx} ${ly} ${lz}"/>
         </geometry>
         <material name="${color}"/>
       </visual>
       <collision>
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry>
-          <xacro:if value="${axis == 'x'}">
-            <box size="${length} ${profile_size} ${profile_size}"/>
-          </xacro:if>
-          <xacro:if value="${axis == 'y'}">
-            <box size="${profile_size} ${length} ${profile_size}"/>
-          </xacro:if>
-          <xacro:if value="${axis == 'z'}">
-            <box size="${profile_size} ${profile_size} ${length}"/>
-          </xacro:if>
+          <box size="${lx} ${ly} ${lz}"/>
         </geometry>
       </collision>
       <inertial>
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <mass value="${mass}"/>
-        <xacro:if value="${axis == 'x'}">
-          <inertia ixx="${i_long}" ixy="0" ixz="0" iyy="${i_trans_y}" iyz="0" izz="${i_trans_z}"/>
-        </xacro:if>
-        <xacro:if value="${axis == 'y'}">
-          <inertia ixx="${i_trans_y}" ixy="0" ixz="0" iyy="${i_long}" iyz="0" izz="${i_trans_z}"/>
-        </xacro:if>
-        <xacro:if value="${axis == 'z'}">
-          <inertia ixx="${i_trans_y}" ixy="0" ixz="0" iyy="${i_trans_z}" iyz="0" izz="${i_long}"/>
-        </xacro:if>
+        <inertia ixx="${ixx}" ixy="0" ixz="0" iyy="${iyy}" iyz="0" izz="${izz}"/>
       </inertial>
     </link>
+  </xacro:macro>
+
+  <xacro:macro
+    name="vslot_60x60_bar"
+    params="name parent length axis xyz rpy mass_per_meter:=2.6 color:=vslot_aluminum">
+    <xacro:linear_profile_bar
+      name="${name}"
+      parent="${parent}"
+      length="${length}"
+      axis="${axis}"
+      profile_x="0.060"
+      profile_y="0.060"
+      profile_z="0.060"
+      xyz="${xyz}"
+      rpy="${rpy}"
+      mass_per_meter="${mass_per_meter}"
+      color="${color}"/>
+  </xacro:macro>
+
+  <xacro:macro
+    name="vslot_20x40_bar"
+    params="name parent length axis xyz rpy profile_y:=0.020 profile_z:=0.040 mass_per_meter:=0.76 color:=vslot_aluminum">
+    <xacro:linear_profile_bar
+      name="${name}"
+      parent="${parent}"
+      length="${length}"
+      axis="${axis}"
+      profile_x="${profile_y}"
+      profile_y="${profile_y}"
+      profile_z="${profile_z}"
+      xyz="${xyz}"
+      rpy="${rpy}"
+      mass_per_meter="${mass_per_meter}"
+      color="${color}"/>
   </xacro:macro>
 </robot>

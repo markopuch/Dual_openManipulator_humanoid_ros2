@@ -1,0 +1,190 @@
+<?xml version="1.0"?>
+<robot name="bimanual_setup" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:arg name="initial_positions_file" default="$(find bimanual_setup_description)/config/initial_joint_positions.yaml"/>
+
+  <xacro:include filename="$(find open_manipulator_x_description)/urdf/materials.xacro"/>
+  <xacro:include filename="$(find open_manipulator_x_description)/gazebo/open_manipulator_x.gazebo.xacro"/>
+  <xacro:include filename="$(find bimanual_setup_description)/urdf/macros/bimanual_parts.xacro"/>
+  <xacro:include filename="$(find bimanual_setup_description)/urdf/macros/bimanual_ros2_control.xacro"/>
+  <xacro:include filename="$(find bimanual_setup_description)/urdf/macros/open_manipulator_x_prefixed.urdf.xacro"/>
+
+  <material name="flat_black">
+    <color rgba="0.005 0.005 0.006 1.0"/>
+  </material>
+  <material name="vslot_aluminum">
+    <color rgba="0.74 0.74 0.70 1.0"/>
+  </material>
+  <material name="vslot_groove">
+    <color rgba="0.18 0.18 0.17 1.0"/>
+  </material>
+  <material name="adapter_black">
+    <color rgba="0.01 0.01 0.012 1.0"/>
+  </material>
+  <material name="bolt_head">
+    <color rgba="0.55 0.55 0.52 1.0"/>
+  </material>
+  <material name="fixture_light_grey">
+    <color rgba="0.80 0.80 0.77 1.0"/>
+  </material>
+
+  <xacro:property name="base_x" value="0.75"/>
+  <xacro:property name="base_y" value="0.50"/>
+  <xacro:property name="base_z" value="0.015"/>
+  <xacro:property name="column_height" value="0.45"/>
+  <xacro:property name="bar_length" value="0.82"/>
+
+  <link name="world"/>
+
+  <joint name="world_to_base_plate" type="fixed">
+    <parent link="world"/>
+    <child link="base_plate"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+  <xacro:base_plate_link x="${base_x}" y="${base_y}" z="${base_z}" mass="8.0"/>
+
+  <joint name="base_plate_to_vertical_column" type="fixed">
+    <parent link="base_plate"/>
+    <child link="vertical_column"/>
+    <origin xyz="0.0 0.18 ${base_z}" rpy="0 0 0"/>
+  </joint>
+  <xacro:vslot_vertical_60x60 height="${column_height}" mass="1.17"/>
+
+  <joint name="vertical_column_to_horizontal_bar" type="fixed">
+    <parent link="vertical_column"/>
+    <child link="horizontal_bar"/>
+    <origin xyz="0.0 0.0 ${column_height}" rpy="0 0 0"/>
+  </joint>
+  <xacro:vslot_horizontal_20x40 length="${bar_length}" mass="0.62"/>
+
+  <xacro:adapter_plate
+    name="left_arm_adapter_plate"
+    parent="horizontal_bar"
+    xyz="-0.26 -0.01 0.0"
+    rpy="0 0 0.785"/>
+
+  <xacro:adapter_plate
+    name="right_arm_adapter_plate"
+    parent="horizontal_bar"
+    xyz="0.26 -0.01 0.0"
+    rpy="0 0 -0.785"/>
+
+  <joint name="base_plate_to_work_fixture" type="fixed">
+    <parent link="base_plate"/>
+    <child link="work_fixture"/>
+    <origin xyz="0.0 -0.10 ${base_z}" rpy="0 0 0"/>
+  </joint>
+  <xacro:work_fixture_link x="0.22" y="0.16" z="0.02" mass="0.60"/>
+
+  <joint name="horizontal_bar_to_work_camera" type="fixed">
+    <parent link="horizontal_bar"/>
+    <child link="work_camera"/>
+    <origin xyz="0.0 0.0 0.045" rpy="0 1.221730476 1.570796327"/>
+  </joint>
+  <link name="work_camera">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.035 0.025 0.025"/>
+      </geometry>
+      <material name="adapter_black"/>
+    </visual>
+    <visual>
+      <origin xyz="-0.024 0 0" rpy="0 1.57079632679 0"/>
+      <geometry>
+        <cylinder radius="0.010" length="0.012"/>
+      </geometry>
+      <material name="bolt_head"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.035 0.025 0.025"/>
+      </geometry>
+    </collision>
+    <xacro:box_inertial mass="0.08" x="0.035" y="0.025" z="0.025"/>
+  </link>
+  <link name="work_camera_optical_frame"/>
+  <joint name="work_camera_to_optical_frame" type="fixed">
+    <parent link="work_camera"/>
+    <child link="work_camera_optical_frame"/>
+    <origin xyz="0 0 0" rpy="-1.57079632679 0 -1.57079632679"/>
+  </joint>
+  <gazebo reference="work_camera">
+    <material>Gazebo/Black</material>
+    <sensor name="work_camera_sensor" type="camera">
+      <always_on>true</always_on>
+      <update_rate>30.0</update_rate>
+      <visualize>true</visualize>
+      <camera name="work_camera">
+        <horizontal_fov>1.0471975512</horizontal_fov>
+        <image>
+          <width>640</width>
+          <height>480</height>
+          <format>R8G8B8</format>
+        </image>
+        <clip>
+          <near>0.02</near>
+          <far>5.0</far>
+        </clip>
+      </camera>
+      <plugin filename="libgazebo_ros_camera.so" name="work_camera_controller">
+        <alwaysOn>true</alwaysOn>
+        <updateRate>30.0</updateRate>
+        <robotNamespace>/</robotNamespace>
+        <cameraName>camera</cameraName>
+        <imageTopicName>image_raw</imageTopicName>
+        <cameraInfoTopicName>camera_info</cameraInfoTopicName>
+        <frameName>work_camera_optical_frame</frameName>
+        <hackBaseline>0.0</hackBaseline>
+        <distortionK1>0.0</distortionK1>
+        <distortionK2>0.0</distortionK2>
+        <distortionK3>0.0</distortionK3>
+        <distortionT1>0.0</distortionT1>
+        <distortionT2>0.0</distortionT2>
+      </plugin>
+    </sensor>
+  </gazebo>
+
+  <xacro:open_manipulator_x_prefixed prefix="left_"/>
+  <xacro:open_manipulator_x_gazebo prefix="left_"/>
+  <joint name="left_adapter_to_open_manipulator" type="fixed">
+    <parent link="left_arm_adapter_plate"/>
+    <child link="left_link1"/>
+    <origin xyz="0.0 -0.006 0.0" rpy="0 0 0"/>
+  </joint>
+
+  <xacro:open_manipulator_x_prefixed prefix="right_"/>
+  <xacro:open_manipulator_x_gazebo prefix="right_"/>
+  <joint name="right_adapter_to_open_manipulator" type="fixed">
+    <parent link="right_arm_adapter_plate"/>
+    <child link="right_link1"/>
+    <origin xyz="0.0 -0.006 0.0" rpy="0 0 0"/>
+  </joint>
+
+  <gazebo reference="left_gripper_left_link">
+    <mu1>2.0</mu1>
+    <mu2>2.0</mu2>
+  </gazebo>
+  <gazebo reference="left_gripper_right_link">
+    <mu1>2.0</mu1>
+    <mu2>2.0</mu2>
+  </gazebo>
+  <gazebo reference="right_gripper_left_link">
+    <mu1>2.0</mu1>
+    <mu2>2.0</mu2>
+  </gazebo>
+  <gazebo reference="right_gripper_right_link">
+    <mu1>2.0</mu1>
+    <mu2>2.0</mu2>
+  </gazebo>
+
+  <xacro:bimanual_ros2_control
+    name="BimanualSetupSystem"
+    initial_positions_file="$(arg initial_positions_file)"/>
+
+  <gazebo>
+    <plugin name="gazebo_ros2_control" filename="libgazebo_ros2_control.so">
+      <parameters>$(find bimanual_setup_description)/config/ros2_controllers.yaml</parameters>
+    </plugin>
+  </gazebo>
+</robot>

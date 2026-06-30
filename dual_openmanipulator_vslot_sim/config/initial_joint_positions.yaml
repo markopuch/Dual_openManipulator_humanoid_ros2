@@ -1,0 +1,13 @@
+initial_positions:
+  left_joint1: -0.55
+  left_joint2: -0.70
+  left_joint3: 0.90
+  left_joint4: 0.30
+  left_gripper_left_joint: 0.012
+  left_gripper_right_joint: 0.012
+  right_joint1: 0.55
+  right_joint2: -0.70
+  right_joint3: 0.90
+  right_joint4: 0.30
+  right_gripper_left_joint: 0.012
+  right_gripper_right_joint: 0.012

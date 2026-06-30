@@ -40,11 +40,23 @@ def generate_launch_description():
     base_x = LaunchConfiguration('base_x')
     base_y = LaunchConfiguration('base_y')
     base_z = LaunchConfiguration('base_z')
-    column_height = LaunchConfiguration('column_height')
-    beam_length = LaunchConfiguration('beam_length')
-    left_mount_x = LaunchConfiguration('left_mount_x')
-    right_mount_x = LaunchConfiguration('right_mount_x')
-    arm_base_z_offset = LaunchConfiguration('arm_base_z_offset')
+    vertical_column_height = LaunchConfiguration('vertical_column_height')
+    column_y_offset = LaunchConfiguration('column_y_offset')
+    horizontal_beam_length = LaunchConfiguration('horizontal_beam_length')
+    horizontal_beam_profile_y = LaunchConfiguration('horizontal_beam_profile_y')
+    horizontal_beam_profile_z = LaunchConfiguration('horizontal_beam_profile_z')
+    left_arm_mount_x = LaunchConfiguration('left_arm_mount_x')
+    right_arm_mount_x = LaunchConfiguration('right_arm_mount_x')
+    arm_mount_y = LaunchConfiguration('arm_mount_y')
+    arm_mount_z = LaunchConfiguration('arm_mount_z')
+    workcell_center_x = LaunchConfiguration('workcell_center_x')
+    workcell_center_y = LaunchConfiguration('workcell_center_y')
+    workcell_center_z = LaunchConfiguration('workcell_center_z')
+    center_camera_x = LaunchConfiguration('center_camera_x')
+    center_camera_y = LaunchConfiguration('center_camera_y')
+    center_camera_z = LaunchConfiguration('center_camera_z')
+    profile_6060_mass_per_meter = LaunchConfiguration('profile_6060_mass_per_meter')
+    profile_2040_mass_per_meter = LaunchConfiguration('profile_2040_mass_per_meter')
     left_arm_yaw = LaunchConfiguration('left_arm_yaw')
     right_arm_yaw = LaunchConfiguration('right_arm_yaw')
 
@@ -66,15 +78,39 @@ def generate_launch_description():
             ' ',
             'base_z:=', base_z,
             ' ',
-            'column_height:=', column_height,
+            'vertical_column_height:=', vertical_column_height,
             ' ',
-            'beam_length:=', beam_length,
+            'column_y_offset:=', column_y_offset,
             ' ',
-            'left_mount_x:=', left_mount_x,
+            'horizontal_beam_length:=', horizontal_beam_length,
             ' ',
-            'right_mount_x:=', right_mount_x,
+            'horizontal_beam_profile_y:=', horizontal_beam_profile_y,
             ' ',
-            'arm_base_z_offset:=', arm_base_z_offset,
+            'horizontal_beam_profile_z:=', horizontal_beam_profile_z,
+            ' ',
+            'left_arm_mount_x:=', left_arm_mount_x,
+            ' ',
+            'right_arm_mount_x:=', right_arm_mount_x,
+            ' ',
+            'arm_mount_y:=', arm_mount_y,
+            ' ',
+            'arm_mount_z:=', arm_mount_z,
+            ' ',
+            'workcell_center_x:=', workcell_center_x,
+            ' ',
+            'workcell_center_y:=', workcell_center_y,
+            ' ',
+            'workcell_center_z:=', workcell_center_z,
+            ' ',
+            'center_camera_x:=', center_camera_x,
+            ' ',
+            'center_camera_y:=', center_camera_y,
+            ' ',
+            'center_camera_z:=', center_camera_z,
+            ' ',
+            'profile_6060_mass_per_meter:=', profile_6060_mass_per_meter,
+            ' ',
+            'profile_2040_mass_per_meter:=', profile_2040_mass_per_meter,
             ' ',
             'left_arm_yaw:=', left_arm_yaw,
             ' ',
@@ -185,13 +221,64 @@ def generate_launch_description():
         DeclareLaunchArgument('base_x', default_value=str(defaults['base_x'])),
         DeclareLaunchArgument('base_y', default_value=str(defaults['base_y'])),
         DeclareLaunchArgument('base_z', default_value=str(defaults['base_z'])),
-        DeclareLaunchArgument('column_height', default_value=str(defaults['column_height'])),
-        DeclareLaunchArgument('beam_length', default_value=str(defaults['beam_length'])),
-        DeclareLaunchArgument('left_mount_x', default_value=str(defaults['left_mount_x'])),
-        DeclareLaunchArgument('right_mount_x', default_value=str(defaults['right_mount_x'])),
         DeclareLaunchArgument(
-            'arm_base_z_offset',
-            default_value=str(defaults['arm_base_z_offset']),
+            'vertical_column_height',
+            default_value=str(defaults['vertical_column_height']),
+        ),
+        DeclareLaunchArgument('column_y_offset', default_value=str(defaults['column_y_offset'])),
+        DeclareLaunchArgument(
+            'horizontal_beam_length',
+            default_value=str(defaults['horizontal_beam_length']),
+        ),
+        DeclareLaunchArgument(
+            'horizontal_beam_profile_y',
+            default_value=str(defaults['horizontal_beam_profile_y']),
+        ),
+        DeclareLaunchArgument(
+            'horizontal_beam_profile_z',
+            default_value=str(defaults['horizontal_beam_profile_z']),
+        ),
+        DeclareLaunchArgument(
+            'left_arm_mount_x',
+            default_value=str(defaults['left_arm_mount_x']),
+        ),
+        DeclareLaunchArgument(
+            'right_arm_mount_x',
+            default_value=str(defaults['right_arm_mount_x']),
+        ),
+        DeclareLaunchArgument('arm_mount_y', default_value=str(defaults['arm_mount_y'])),
+        DeclareLaunchArgument('arm_mount_z', default_value=str(defaults['arm_mount_z'])),
+        DeclareLaunchArgument(
+            'workcell_center_x',
+            default_value=str(defaults['workcell_center_x']),
+        ),
+        DeclareLaunchArgument(
+            'workcell_center_y',
+            default_value=str(defaults['workcell_center_y']),
+        ),
+        DeclareLaunchArgument(
+            'workcell_center_z',
+            default_value=str(defaults['workcell_center_z']),
+        ),
+        DeclareLaunchArgument(
+            'center_camera_x',
+            default_value=str(defaults['center_camera_x']),
+        ),
+        DeclareLaunchArgument(
+            'center_camera_y',
+            default_value=str(defaults['center_camera_y']),
+        ),
+        DeclareLaunchArgument(
+            'center_camera_z',
+            default_value=str(defaults['center_camera_z']),
+        ),
+        DeclareLaunchArgument(
+            'profile_6060_mass_per_meter',
+            default_value=str(defaults['profile_6060_mass_per_meter']),
+        ),
+        DeclareLaunchArgument(
+            'profile_2040_mass_per_meter',
+            default_value=str(defaults['profile_2040_mass_per_meter']),
         ),
         DeclareLaunchArgument('left_arm_yaw', default_value=str(defaults['left_arm_yaw'])),
         DeclareLaunchArgument('right_arm_yaw', default_value=str(defaults['right_arm_yaw'])),

@@ -1,21 +1,35 @@
 <?xml version="1.0"?>
 <robot name="dual_openmanipulator_vslot" xmlns:xacro="http://ros.org/wiki/xacro">
   <xacro:arg name="use_sim" default="true"/>
-  <xacro:arg name="base_x" default="0.80"/>
-  <xacro:arg name="base_y" default="0.55"/>
+  <xacro:arg name="initial_positions_file" default="$(find dual_openmanipulator_vslot_sim)/config/initial_joint_positions.yaml"/>
+
+  <xacro:arg name="base_x" default="0.75"/>
+  <xacro:arg name="base_y" default="0.50"/>
   <xacro:arg name="base_z" default="0.015"/>
-  <xacro:arg name="column_height" default="0.70"/>
-  <xacro:arg name="beam_length" default="1.00"/>
-  <xacro:arg name="left_mount_x" default="-0.38"/>
-  <xacro:arg name="right_mount_x" default="0.38"/>
-  <xacro:arg name="arm_base_z_offset" default="-0.22"/>
+  <xacro:arg name="vertical_column_height" default="0.45"/>
+  <xacro:arg name="column_y_offset" default="0.18"/>
+  <xacro:arg name="horizontal_beam_length" default="0.82"/>
+  <xacro:arg name="horizontal_beam_profile_y" default="0.020"/>
+  <xacro:arg name="horizontal_beam_profile_z" default="0.040"/>
+  <xacro:arg name="left_arm_mount_x" default="-0.26"/>
+  <xacro:arg name="right_arm_mount_x" default="0.26"/>
+  <xacro:arg name="arm_mount_y" default="0.08"/>
+  <xacro:arg name="arm_mount_z" default="0.30"/>
+  <xacro:arg name="workcell_center_x" default="0.0"/>
+  <xacro:arg name="workcell_center_y" default="-0.06"/>
+  <xacro:arg name="workcell_center_z" default="0.13"/>
+  <xacro:arg name="center_camera_x" default="0.0"/>
+  <xacro:arg name="center_camera_y" default="0.10"/>
+  <xacro:arg name="center_camera_z" default="0.36"/>
+  <xacro:arg name="profile_6060_mass_per_meter" default="2.6"/>
+  <xacro:arg name="profile_2040_mass_per_meter" default="0.76"/>
   <xacro:arg name="left_arm_yaw" default="0.0"/>
   <xacro:arg name="right_arm_yaw" default="3.141592653589793"/>
 
   <xacro:include filename="$(find open_manipulator_x_description)/urdf/materials.xacro"/>
   <xacro:include filename="$(find open_manipulator_x_description)/gazebo/open_manipulator_x.gazebo.xacro"/>
   <xacro:include filename="$(find dual_openmanipulator)/urdf/open_manipulator_x_prefixed.urdf.xacro"/>
-  <xacro:include filename="$(find dual_openmanipulator)/urdf/dual_open_manipulator.ros2_control.xacro"/>
+  <xacro:include filename="$(find dual_openmanipulator_vslot_sim)/urdf/macros/dual_open_manipulator_vslot.ros2_control.xacro"/>
   <xacro:include filename="$(find dual_openmanipulator_vslot_sim)/urdf/macros/vslot_60x60.xacro"/>
   <xacro:include filename="$(find dual_openmanipulator_vslot_sim)/urdf/macros/simple_fixture.xacro"/>
 
@@ -28,17 +42,29 @@
   <material name="fixture_aluminum">
     <color rgba="0.75 0.76 0.74 1.0"/>
   </material>
-  <material name="demo_blue">
-    <color rgba="0.08 0.22 0.75 1.0"/>
-  </material>
 
   <xacro:property name="base_x" value="$(arg base_x)"/>
   <xacro:property name="base_y" value="$(arg base_y)"/>
   <xacro:property name="base_z" value="$(arg base_z)"/>
-  <xacro:property name="column_height" value="$(arg column_height)"/>
-  <xacro:property name="beam_length" value="$(arg beam_length)"/>
-  <xacro:property name="left_mount_x" value="$(arg left_mount_x)"/>
-  <xacro:property name="right_mount_x" value="$(arg right_mount_x)"/>
+  <xacro:property name="vertical_column_height" value="$(arg vertical_column_height)"/>
+  <xacro:property name="column_y_offset" value="$(arg column_y_offset)"/>
+  <xacro:property name="horizontal_beam_length" value="$(arg horizontal_beam_length)"/>
+  <xacro:property name="horizontal_beam_profile_y" value="$(arg horizontal_beam_profile_y)"/>
+  <xacro:property name="horizontal_beam_profile_z" value="$(arg horizontal_beam_profile_z)"/>
+  <xacro:property name="left_arm_mount_x" value="$(arg left_arm_mount_x)"/>
+  <xacro:property name="right_arm_mount_x" value="$(arg right_arm_mount_x)"/>
+  <xacro:property name="arm_mount_y" value="$(arg arm_mount_y)"/>
+  <xacro:property name="arm_mount_z" value="$(arg arm_mount_z)"/>
+  <xacro:property name="workcell_center_x" value="$(arg workcell_center_x)"/>
+  <xacro:property name="workcell_center_y" value="$(arg workcell_center_y)"/>
+  <xacro:property name="workcell_center_z" value="$(arg workcell_center_z)"/>
+  <xacro:property name="center_camera_x" value="$(arg center_camera_x)"/>
+  <xacro:property name="center_camera_y" value="$(arg center_camera_y)"/>
+  <xacro:property name="center_camera_z" value="$(arg center_camera_z)"/>
+  <xacro:property name="profile_6060_mass_per_meter" value="$(arg profile_6060_mass_per_meter)"/>
+  <xacro:property name="profile_2040_mass_per_meter" value="$(arg profile_2040_mass_per_meter)"/>
+  <xacro:property name="horizontal_beam_z" value="${base_z + vertical_column_height}"/>
+  <xacro:property name="camera_pitch_to_workcell" value="0.96"/>
 
   <link name="world"/>
 
@@ -54,91 +80,108 @@
   <xacro:vslot_60x60_bar
     name="vslot_vertical_column"
     parent="vslot_base_plate_link"
-    length="${column_height}"
+    length="${vertical_column_height}"
     axis="z"
-    xyz="0 0 ${base_z / 2.0 + column_height / 2.0}"
+    xyz="0 ${column_y_offset} ${base_z / 2.0 + vertical_column_height / 2.0}"
     rpy="0 0 0"
+    mass_per_meter="${profile_6060_mass_per_meter}"
     color="vslot_aluminum"/>
 
-  <xacro:vslot_60x60_bar
+  <xacro:vslot_20x40_bar
     name="vslot_horizontal_beam"
     parent="vslot_vertical_column_link"
-    length="${beam_length}"
+    length="${horizontal_beam_length}"
     axis="x"
-    xyz="0 0 ${column_height / 2.0}"
+    profile_y="${horizontal_beam_profile_y}"
+    profile_z="${horizontal_beam_profile_z}"
+    xyz="0 0 ${vertical_column_height / 2.0}"
     rpy="0 0 0"
+    mass_per_meter="${profile_2040_mass_per_meter}"
     color="vslot_aluminum"/>
 
   <xacro:fixed_box_link
     name="left_arm_mount"
     parent="vslot_horizontal_beam_link"
-    size="0.10 0.025 0.28"
-    xyz="${left_mount_x} 0 -0.11"
+    size="0.080 0.220 0.290"
+    xyz="${left_arm_mount_x} ${arm_mount_y - column_y_offset} ${arm_mount_z - horizontal_beam_z}"
     rpy="0 0 0"
-    mass="0.35"
+    mass="0.18"
     color="dark_anodized"/>
 
   <xacro:fixed_box_link
     name="right_arm_mount"
     parent="vslot_horizontal_beam_link"
-    size="0.10 0.025 0.28"
-    xyz="${right_mount_x} 0 -0.11"
+    size="0.080 0.220 0.290"
+    xyz="${right_arm_mount_x} ${arm_mount_y - column_y_offset} ${arm_mount_z - horizontal_beam_z}"
     rpy="0 0 0"
-    mass="0.35"
+    mass="0.18"
     color="dark_anodized"/>
 
   <xacro:fixed_box_link
     name="central_fixture"
     parent="vslot_base_plate_link"
-    size="0.25 0.18 0.005"
-    xyz="0 0 ${base_z / 2.0 + 0.0025}"
+    size="0.22 0.16 0.02"
+    xyz="${workcell_center_x} ${workcell_center_y} ${base_z / 2.0 + 0.01}"
     rpy="0 0 0"
     mass="0.50"
     color="fixture_aluminum"/>
 
-  <xacro:fixed_box_link
-    name="demo_block_1"
-    parent="vslot_base_plate_link"
-    size="0.045 0.045 0.035"
-    xyz="-0.065 0.035 ${base_z / 2.0 + 0.0175}"
-    rpy="0 0 0.35"
-    mass="0.06"
-    color="demo_blue"/>
+  <link name="workcell_center_link"/>
+  <joint name="workcell_center_joint" type="fixed">
+    <parent link="world"/>
+    <child link="workcell_center_link"/>
+    <origin xyz="${workcell_center_x} ${workcell_center_y} ${workcell_center_z}" rpy="0 0 0"/>
+  </joint>
+
+  <link name="center_camera_mount_link"/>
+  <joint name="center_camera_mount_joint" type="fixed">
+    <parent link="vslot_horizontal_beam_link"/>
+    <child link="center_camera_mount_link"/>
+    <origin xyz="${center_camera_x} ${center_camera_y - column_y_offset} ${center_camera_z - horizontal_beam_z}" rpy="0 0 0"/>
+  </joint>
 
   <xacro:fixed_box_link
-    name="demo_block_2"
-    parent="vslot_base_plate_link"
-    size="0.055 0.035 0.03"
-    xyz="0.070 -0.030 ${base_z / 2.0 + 0.015}"
-    rpy="0 0 -0.25"
-    mass="0.07"
-    color="grey"/>
+    name="center_camera"
+    parent="center_camera_mount_link"
+    size="0.035 0.025 0.025"
+    xyz="0 0 0"
+    rpy="0 ${camera_pitch_to_workcell} -1.57079632679"
+    mass="0.08"
+    color="dark_anodized"/>
 
-  <xacro:fixed_cylinder_link
-    name="demo_cylinder_1"
-    parent="vslot_base_plate_link"
-    radius="0.022"
-    length="0.045"
-    xyz="0.02 0.07 ${base_z / 2.0 + 0.0225}"
-    rpy="0 0 0"
-    mass="0.05"
-    color="fixture_aluminum"/>
+  <link name="center_camera_optical_frame"/>
+  <joint name="center_camera_optical_joint" type="fixed">
+    <parent link="center_camera_link"/>
+    <child link="center_camera_optical_frame"/>
+    <origin xyz="0 0 0" rpy="-1.57079632679 0 -1.57079632679"/>
+  </joint>
 
-  <xacro:fixed_box_link
-    name="demo_printed_part_1"
-    parent="vslot_base_plate_link"
-    size="0.040 0.030 0.020"
-    xyz="-0.015 -0.070 ${base_z / 2.0 + 0.010}"
-    rpy="0 0 0.7"
-    mass="0.04"
-    color="white"/>
+  <gazebo reference="center_camera_link">
+    <sensor name="center_camera_sensor" type="camera">
+      <always_on>true</always_on>
+      <update_rate>30</update_rate>
+      <visualize>true</visualize>
+      <camera name="center_camera">
+        <horizontal_fov>1.047</horizontal_fov>
+        <image>
+          <width>640</width>
+          <height>480</height>
+          <format>R8G8B8</format>
+        </image>
+        <clip>
+          <near>0.02</near>
+          <far>5.0</far>
+        </clip>
+      </camera>
+    </sensor>
+  </gazebo>
 
   <xacro:open_manipulator_x_prefixed prefix="left_"/>
   <xacro:open_manipulator_x_gazebo prefix="left_"/>
   <joint name="left_arm_mount_to_open_manipulator" type="fixed">
     <parent link="left_arm_mount_link"/>
     <child link="left_link1"/>
-    <origin xyz="0 0 $(arg arm_base_z_offset)" rpy="0 0 $(arg left_arm_yaw)"/>
+    <origin xyz="0 0 0" rpy="0 0 $(arg left_arm_yaw)"/>
   </joint>
 
   <xacro:open_manipulator_x_prefixed prefix="right_"/>
@@ -146,10 +189,12 @@
   <joint name="right_arm_mount_to_open_manipulator" type="fixed">
     <parent link="right_arm_mount_link"/>
     <child link="right_link1"/>
-    <origin xyz="0 0 $(arg arm_base_z_offset)" rpy="0 0 $(arg right_arm_yaw)"/>
+    <origin xyz="0 0 0" rpy="0 0 $(arg right_arm_yaw)"/>
   </joint>
 
-  <xacro:dual_open_manipulator_ros2_control name="DualOpenManipulatorVslotSystem"/>
+  <xacro:dual_open_manipulator_vslot_ros2_control
+    name="DualOpenManipulatorVslotSystem"
+    initial_positions_file="$(arg initial_positions_file)"/>
 
   <gazebo>
     <plugin name="gazebo_ros2_control" filename="libgazebo_ros2_control.so">
