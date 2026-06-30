@@ -6,7 +6,6 @@ OpenMANIPULATOR-X sobre una estructura de aluminio, con control independiente o 
 
 ## Paquetes locales
 
-- `dual_openmanipulator`: paquete base con dos OpenMANIPULATOR-X.
 - `dual_openmanipulator_vslot_sim`: simulacion nueva con dos OpenMANIPULATOR-X montados sobre un bastidor V-slot 60x60, fixtures de prototipo y configuracion MoveIt en una sola interfaz.
 - `bimanual_setup_description`: paquete nuevo y modular de descripcion/simulacion del prototipo bimanual segun la referencia `referencia/Gemini_Generated_Image_vipksvvipksvvipk.png`. Incluye marco estructural, placas atornilladas, fixture, camara y controladores `ros2_control`.
 
